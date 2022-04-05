@@ -1,4 +1,4 @@
-import { REACT_TEXT } from "./constants"
+import { REACT_TEXT, ReactComponent } from "./constants"
 
 function render(vdom, container) {
   mount(vdom, container)
@@ -22,6 +22,12 @@ function createDOM(vdom) {
   let dom //真实DOM
   if (type === REACT_TEXT) {
     dom = document.createTextNode(props)
+  }else if(typeof type === 'function'){
+    if (type.isReactComponent === ReactComponent) {
+      return mountClassComponent(vdom)
+    }else{
+      return mountFunctionComponent(vdom)
+    }
   }else{
     dom = document.createElement(type)
   }
@@ -36,6 +42,25 @@ function createDOM(vdom) {
   }
   vdom.dom = dom //让vdom的dom属性指向真实的DOM
   return dom
+}
+
+function mountFunctionComponent(vdom) {
+  let {type, props} = vdom
+
+  let renderVdom = type(props)
+  //记住老的虚拟dom 方便后面domdiff
+  vdom.oldRenderVdom = renderVdom
+  return createDOM(renderVdom)
+}
+
+function mountClassComponent(vdom) {
+  let {type:ClassComponent, props} = vdom
+  
+  let classInstance = new ClassComponent(props)
+  let renderVdom = classInstance.render()
+  vdom.classInstance = classInstance
+  vdom.oldRenderVdom = renderVdom
+  return createDOM(renderVdom)
 }
 
 function reconcileChildren(children, parentDOM) {

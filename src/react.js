@@ -1,6 +1,6 @@
 import { REACT_ELEMENT } from "./constants"
 import { wrapToVdom } from "./utils"
-
+import {Component} from './component'
 /**
  * 
  * 用来创建React元素的工厂方法
@@ -39,7 +39,8 @@ function createElement(type, config, children) {
 
 
 const React = {
-  createElement
+  createElement,
+  Component
 }
 
 export default React
