@@ -4,23 +4,43 @@ import ReactDOM from './react-dom';
 // import ReactDOM from 'react-dom';
 
 
-function FunctionComponent(props) {
-  let renderVdom = <h1 className="title" style={{ color: 'red', backgroundColor: 'green' }}>
-    {props.msg} < span > world</span >
-  </h1 >
-  return renderVdom;
-}
 
-class ClassComponent extends React.Component {
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+    //类的构建函数中唯一可以给this.state直接赋值 的地方
+    this.state = { number: 0, name: 'counter' };
+  }
+  //需求 为了提高性能，减少更新的次数，我们可以把一个事件函数函数中的更新进行合并
+  handleClick = (event) => {
+    // this.setState({ number: this.state.number + 1 });
+
+    this.setState((state) => ({ number: state.number + 1 }),() => {
+       console.log('callback', this.state);
+    });
+    // console.log(this.state.number);//0
+    // this.setState((state) => ({ number: state.number + 1 }));
+    console.log(this.state);//0
+    /*  setTimeout(() => {
+       //console.log(this.state.number);//1
+       this.setState({ number: this.state.number + 1 });
+       console.log(this.state.number);//2
+       this.setState({ number: this.state.number + 1 });
+       console.log(this.state.number);//3
+     }); */
+  }
   render() {
-    let renderVdom = <h1 className="title" style={{ color: 'red', backgroundColor: 'green' }}>
-      {this.props.msg} < span > worldwwwwwwwwwwwwwwwww</span >
-    </h1 >
-    return renderVdom;
+    return (
+      <div>
+        {/* <p>{this.state.name}</p> */}
+        <p>{this.state.number}</p>
+        <button onClick={this.handleClick}>+</button>
+      </div>
+    )
   }
 }
-// let element =  <div>hello<h1 className='title' style={{color:'red'}}>React</h1></div>
-let element = <ClassComponent msg="消息" age={12} />; 
+//只有原生组件才有真实DOM，类组件和函数组件是没有，
+let element = <Counter title="定时器" />; 
 
 console.log(element);
 ReactDOM.render(

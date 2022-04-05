@@ -59,7 +59,8 @@ function mountClassComponent(vdom) {
   let classInstance = new ClassComponent(props)
   let renderVdom = classInstance.render()
   vdom.classInstance = classInstance
-  vdom.oldRenderVdom = renderVdom
+  //把上一次render渲染的vdom保留
+  vdom.oldRenderVdom = classInstance.oldRenderVdom =renderVdom
   return createDOM(renderVdom)
 }
 
@@ -85,8 +86,10 @@ function updateProps(dom, oldProps = {}, newProps = {}) {
       for(let attr in styleObj){
         dom.style[attr] = styleObj[attr]
       }
+    }else if(/^on[A-Z].*/.test(key)){
+      dom[key.toLowerCase()] = newProps[key]
     }else{
-      dom[key] = newProps
+       dom[key] = newProps
     }
   }
   //如果属性在老的属性里，新的属性没有，需要从真实DOM中删除
@@ -98,6 +101,34 @@ function updateProps(dom, oldProps = {}, newProps = {}) {
 }
 
 
+
+/**
+ * dom diff 对比
+ * @param {*} parentDom 
+ * @param {*} oldVdom 
+ * @param {*} newVdom 
+ */
+export function compareTwoVdom(parentDom, oldVdom, newVdom) {
+  
+  //获取老的真实DOM
+  let oldDOM = findDom(oldVdom)
+  let newDom = createDOM(newVdom)
+  parentDom.replaceChild(newDom, oldDOM)
+}
+ 
+export function findDom(vdom) {
+  if(!vdom) return vdom
+
+  //如果有dom说明是原生标签 span div
+  if (vdom.dom) {
+    return vdom.dom
+  }else{
+    let oldRenderVdom = vdom.oldRenderVdom
+    return findDom(oldRenderVdom)
+  }
+  
+  
+}
 
 const ReactDOM = {
   render
