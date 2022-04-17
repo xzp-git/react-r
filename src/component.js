@@ -1,5 +1,20 @@
 import { ReactComponent} from './constants'
 import {compareTwoVdom, findDom} from './react-dom'
+
+
+export const updateQueue = {
+    isBatchingUpdate:false,
+    updaters: new Set(),
+    batchUpdate(){ //批量更新的方法
+        updateQueue.isBatchingUpdate = false
+        for(const updater of updateQueue.updaters){
+            updater.updateComponent()
+        }
+        updateQueue.updaters.clear()
+    }
+}
+
+
 class Updater{
     constructor(classInstance){
         //类组件的实例
@@ -19,7 +34,12 @@ class Updater{
     }
 
     emitUpdate(){
-        this.updateComponent()
+        if (updateQueue.isBatchingUpdate) {
+            //如果当前处于批量更新模式 只添加updater
+            updateQueue.updaters.add(this)
+        }else{
+            this.updateComponent()
+        }
     }
     updateComponent(){
         let {pendingStates, classInstance, callbacks } = this

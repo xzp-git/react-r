@@ -1,5 +1,9 @@
 import React from './react';
 import ReactDOM from './react-dom';
+// import React from 'react';
+// import ReactDOM from 'react-dom';
+
+
 
 class Counter extends React.Component {
   constructor(props) {
@@ -9,14 +13,14 @@ class Counter extends React.Component {
   }
   //需求 为了提高性能，减少更新的次数，我们可以把一个事件函数函数中的更新进行合并
   handleClick = (event) => {
-    this.setState({ number: this.state.number + 1 });
+    // this.setState({ number: this.state.number + 1 });
 
-    console.log('handleClick');
-
-    // this.setState((state) => ({ number: state.number + 1 }));
+    this.setState((state) => ({ number: state.number + 1 }),() => {
+       console.log('callback', this.state);
+    });
     // console.log(this.state.number);//0
     // this.setState((state) => ({ number: state.number + 1 }));
-    // console.log(this.state.number);//0
+    console.log(this.state);//0
     /*  setTimeout(() => {
        //console.log(this.state.number);//1
        this.setState({ number: this.state.number + 1 });
@@ -25,18 +29,23 @@ class Counter extends React.Component {
        console.log(this.state.number);//3
      }); */
   }
-  handleDivClick = () => {
-    console.log('handleDivClick');
-  }
   render() {
     return (
-      <div onClick={this.handleDivClick}>
-        <p>{this.state.name}</p>
+      <div>
+        {/* <p>{this.state.name}</p> */}
         <p>{this.state.number}</p>
         <button onClick={this.handleClick}>+</button>
       </div>
     )
   }
 }
-ReactDOM.render(<Counter title="定时器" />, document.getElementById('root'));
 //只有原生组件才有真实DOM，类组件和函数组件是没有，
+let element = <Counter title="定时器" />; 
+
+console.log(element);
+ReactDOM.render(
+  element
+  ,document.getElementById('root')
+);
+
+
