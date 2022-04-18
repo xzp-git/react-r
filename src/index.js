@@ -8,8 +8,8 @@ class Counter extends React.Component {
 function Func(props, forwardRef) {
   return <div ref={forwardRef}>Func</div>
 }
-// const ForwardFunc = React.forwardRef(Func);
-// console.log(ForwardFunc);
+const ForwardFunc = React.forwardRef(Func);
+console.log(ForwardFunc);
 let lastCounter;
 class Sum extends React.Component {
   constructor(props) {
@@ -30,16 +30,16 @@ class Sum extends React.Component {
   onClick = () => {
     console.log('this.func.current', this.func.current);
     lastCounter = this.counter.current
-    this.setState(state => ({ number: state.number + 1 }), function () {
+    this.setState(state => ({ number: state.number + 1 }),  () => {
       console.log(this.counter.current === lastCounter);
     });
   }
   render() {
-    this.any.current = {};
+    
     return (
       <div>
-        {/* <Counter ref={this.counter} />
-        <ForwardFunc ref={this.func} /> */}
+        <Counter ref={this.counter} />
+        <ForwardFunc ref={this.func} />
         <button onClick={this.onClick}>{this.state.number}</button>
         <input ref={this.a} />+<input ref={this.b} /><button onClick={this.handleClick}>=</button><input ref={this.result} />
       </div>

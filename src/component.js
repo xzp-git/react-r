@@ -42,12 +42,18 @@ class Updater{
         }
     }
     updateComponent(){
-        let {pendingStates, classInstance } = this
+        let {pendingStates, classInstance, callbacks } = this
 
         //长度大于零 说明当前正在准备要更新的状态
         if (pendingStates.length > 0) {
             shouldUpdate(classInstance, this.getState())
         }
+        queueMicrotask(() => {
+            if (callbacks.length > 0) {
+                callbacks.forEach(callback => callback())
+                callbacks.length = 0
+            }
+        })
         
     }
 
@@ -109,9 +115,6 @@ export class Component{
         compareTwoVdom(oldDom.parentNode, oldRenderVdom, newRenderVdom)
         this.oldRenderVdom = newRenderVdom
 
-        if (this.updater.callbacks.length > 0) {
-            this.updater.callbacks.forEach(callback => callback())
-            this.updater.callbacks.length = 0
-        }
+        
     }
 }
