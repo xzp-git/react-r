@@ -12,8 +12,8 @@ import {Component} from './component'
 function createElement(type, config, children) {
   let ref, key
   if (config) {
-    ref = config.ref
-    key = config.key
+    ref = config.ref //通过它可以获取
+    key = config.key //后面会用于dom diff的移动处理
     delete config.ref
     delete config.key
     delete config.__source
@@ -36,11 +36,15 @@ function createElement(type, config, children) {
   }
 }
 
+function createRef() {
+  return {current:null}
+}
 
 
 const React = {
   createElement,
-  Component
+  Component,
+  createRef
 }
 
 export default React

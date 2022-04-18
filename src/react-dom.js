@@ -19,7 +19,7 @@ function mount(vdom, container) {
  * @param {*} vdom 
  */
 function createDOM(vdom) {
-  let {type, props} = vdom
+  let {type, props, ref} = vdom
   let dom //真实DOM
   if (type === REACT_TEXT) {
     dom = document.createTextNode(props)
@@ -42,6 +42,8 @@ function createDOM(vdom) {
     }
   }
   vdom.dom = dom //让vdom的dom属性指向真实的DOM
+
+  if(ref) ref.current = dom
   return dom
 }
 
@@ -55,9 +57,10 @@ function mountFunctionComponent(vdom) {
 }
 
 function mountClassComponent(vdom) {
-  let {type:ClassComponent, props} = vdom
+  let {type:ClassComponent, props, ref} = vdom
   
   let classInstance = new ClassComponent(props)
+  if(ref) ref.current = classInstance
   let renderVdom = classInstance.render()
   vdom.classInstance = classInstance
   //把上一次render渲染的vdom保留

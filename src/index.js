@@ -1,42 +1,56 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-unreachable */
 import React from './react';
 import ReactDOM from './react-dom';
-
 class Counter extends React.Component {
+  render() { return <div>Counter</div> }
+}
+function Func(props, forwardRef) {
+  return <div ref={forwardRef}>Func</div>
+}
+// const ForwardFunc = React.forwardRef(Func);
+// console.log(ForwardFunc);
+let lastCounter;
+class Sum extends React.Component {
   constructor(props) {
-    super(props);
-    //类的构建函数中唯一可以给this.state直接赋值 的地方
-    this.state = { number: 0, name: 'counter' };
+    super(props)
+    this.a = React.createRef();//{current:null}
+    this.b = { current: null };
+    this.counter = React.createRef();
+    this.result = React.createRef();
+    this.any = React.createRef();
+    this.func = React.createRef();
+    this.state = { number: 0 };
   }
-  //需求 为了提高性能，减少更新的次数，我们可以把一个事件函数函数中的更新进行合并
-  handleClick = (event) => {
-    this.setState({ number: this.state.number + 1 });
-
-    console.log('handleClick');
-
-    // this.setState((state) => ({ number: state.number + 1 }));
-    // console.log(this.state.number);//0
-    // this.setState((state) => ({ number: state.number + 1 }));
-    // console.log(this.state.number);//0
-    /*  setTimeout(() => {
-       //console.log(this.state.number);//1
-       this.setState({ number: this.state.number + 1 });
-       console.log(this.state.number);//2
-       this.setState({ number: this.state.number + 1 });
-       console.log(this.state.number);//3
-     }); */
+  handleClick = () => {
+    let valueA = this.a.current.value;
+    let valueB = this.b.current.value;
+    this.result.current.value = valueA + valueB;
   }
-  handleDivClick = () => {
-    console.log('handleDivClick');
+  onClick = () => {
+    console.log('this.func.current', this.func.current);
+    lastCounter = this.counter.current
+    this.setState(state => ({ number: state.number + 1 }), function () {
+      console.log(this.counter.current === lastCounter);
+    });
   }
   render() {
+    this.any.current = {};
     return (
-      <div onClick={this.handleDivClick}>
-        <p>{this.state.name}</p>
-        <p>{this.state.number}</p>
-        <button onClick={this.handleClick}>+</button>
+      <div>
+        {/* <Counter ref={this.counter} />
+        <ForwardFunc ref={this.func} /> */}
+        <button onClick={this.onClick}>{this.state.number}</button>
+        <input ref={this.a} />+<input ref={this.b} /><button onClick={this.handleClick}>=</button><input ref={this.result} />
       </div>
     )
   }
+
 }
-ReactDOM.render(<Counter title="定时器" />, document.getElementById('root'));
-//只有原生组件才有真实DOM，类组件和函数组件是没有，
+ReactDOM.render(<Sum />, document.getElementById('root'));
+
+/**
+ * Warning: Function components cannot be given refs. 
+ * Attempts to access this ref will fail.
+ *  Did you mean to use React.forwardRef()?
+ */
