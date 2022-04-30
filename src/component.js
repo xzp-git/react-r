@@ -32,7 +32,8 @@ class Updater {
     this.emitUpdate();
   }
 
-  emitUpdate() {
+  emitUpdate(nextProps) {
+    this.nextProps = nextProps;
     if (updateQueue.isBatchingUpdate) {
       //如果当前处于批量更新模式 只添加updater
       updateQueue.updaters.add(this);
@@ -41,11 +42,13 @@ class Updater {
     }
   }
   updateComponent() {
-    let { pendingStates, classInstance, callbacks } = this;
+    let { pendingStates, classInstance, callbacks, nextProps, callback } = this;
 
     //长度大于零 说明当前正在准备要更新的状态
-    if (pendingStates.length > 0) {
-      shouldUpdate(classInstance, this.getState());
+    //如果有新的属性，或者说有新的状态都会进行更新
+    if (nextProps || pendingStates.length > 0) {
+      let newState = this.getState();
+      shouldUpdate(classInstance, nextProps, newState);
     }
     queueMicrotask(() => {
       if (callbacks.length > 0) {
@@ -78,7 +81,7 @@ class Updater {
  * @param {*} classInstance  类组件的实例
  * @param {*} nextState 新状态
  */
-function shouldUpdate(classInstance, nextState) {
+function shouldUpdate(classInstance, nextProps, nextState) {
   //表示是否要更新
   let willUpdate = true;
 
@@ -92,6 +95,10 @@ function shouldUpdate(classInstance, nextState) {
 
   if (willUpdate && classInstance.UNSAFE_componentWillUpdate) {
     classInstance.UNSAFE_componentWillUpdate();
+  }
+
+  if (nextProps) {
+    classInstance.props = nextProps;
   }
 
   //不管要不要更新， 类的实例的state都会改变，都会指向新的状态
