@@ -1,4 +1,4 @@
-import { REACT_ELEMENT, REACT_FORWARD_REF } from "./constants"
+import { REACT_ELEMENT, REACT_FRAGMENT, REACT_FORWARD_REF } from "./constants"
 import { wrapToVdom } from "./utils"
 import {Component} from './component'
 /**
@@ -52,7 +52,8 @@ const React = {
   createElement,
   Component,
   createRef,
-  forwardRef
+  forwardRef,
+  Fragment:REACT_FRAGMENT
 }
 
 export default React

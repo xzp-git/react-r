@@ -1,4 +1,4 @@
-import { REACT_TEXT, ReactComponent, REACT_FORWARD_REF } from "./constants";
+import { REACT_TEXT, PLACEMENT, MOVE, REACT_FRAGMENT,ReactComponent, REACT_FORWARD_REF } from "./constants";
 import { addEvent } from "./event";
 
 function render(vdom, container) {
@@ -27,9 +27,9 @@ function createDOM(vdom) {
 
   if (type && type.$$typeof === REACT_FORWARD_REF) {
     return mountForwardComponent(vdom);
-  }
-
-  if (type === REACT_TEXT) {
+  } else if(type === REACT_FRAGMENT){
+    dom = document.createDocumentFragment()
+  } else if (type === REACT_TEXT) {
     dom = document.createTextNode(props);
   } else if (typeof type === "function") {
     if (type.isReactComponent === ReactComponent) {
@@ -95,7 +95,8 @@ function mountClassComponent(vdom) {
 }
 
 function reconcileChildren(children, parentDOM) {
-  children.forEach((child) => {
+  children.forEach((child, index) => {
+    child.mountIndex = index
     mount(child, parentDOM);
   });
 }
@@ -137,7 +138,7 @@ function updateProps(dom, oldProps = {}, newProps = {}) {
  * @param {*} oldVdom
  * @param {*} newVdom
  */
-export function compareTwoVdom(parentDom, oldVdom, newVdom) {
+export function compareTwoVdom(parentDom, oldVdom, newVdom, nextVdom) {
   if (!oldVdom && !newVdom) {
     return;
     //如果老节点存在 新节点不存在，需要直接删除老节点就可以了
@@ -146,7 +147,7 @@ export function compareTwoVdom(parentDom, oldVdom, newVdom) {
   } else if (!oldVdom && newVdom) {
     let newDOM = createDOM(newVdom);
 
-    parentDom.appendChild(newDOM);
+    parentDom.insertBefore(newDOM, findDom(nextVdom));
     if (newDOM.componentDidMount) {
       newDOM.componentDidMount();
     }
@@ -154,7 +155,7 @@ export function compareTwoVdom(parentDom, oldVdom, newVdom) {
     unMountVdom(oldVdom);
     let newDOM = createDOM(newVdom);
 
-    parentDom.appendChild(newDOM);
+    parentDom.insertBefore(newDOM, findDom(nextVdom));
     if (newDOM.componentDidMount) {
       newDOM.componentDidMount();
     }
@@ -173,6 +174,8 @@ function updateElement(oldVdom, newVdom) {
     let currentDOM = (newVdom.dom = findDom(oldVdom));
     updateProps(currentDOM, oldVdom.props, newVdom.props);
     updateChildren(currentDOM, oldVdom.props.children, newVdom.props.children);
+  }else if(oldVdom.type===REACT_FRAGMENT){
+    updateFragment(oldVdom, newVdom)
   } else if (typeof oldVdom.type === "function") {
     if (oldVdom.type.isReactComponent) {
       updateClassComponent(oldVdom, newVdom);
@@ -181,7 +184,10 @@ function updateElement(oldVdom, newVdom) {
     }
   }
 }
-
+function updateFragment(oldVdom, newVdom) {
+  let currentDOM = newVdom.dom =findDom(oldVdom)
+  updateChildren(currentDOM, oldVdom.props.children, newVdom.props.children)
+}
 function updateClassComponent(oldVdom, newVdom) {
   const classInstance = (newVdom.classInstance = oldVdom.classInstance);
   if (classInstance.UNSAFE_componentWillReceiveProps) {
@@ -201,16 +207,75 @@ function updateFunctionComponent(oldVdom, newVdom) {
 }
 
 function updateChildren(parentDOM, oldVChilcren, newVChildren) {
+  // debugger
   oldVChilcren = Array.isArray(oldVChilcren) ? oldVChilcren : [oldVChilcren];
   newVChildren = Array.isArray(newVChildren) ? newVChildren : [newVChildren];
-  const maxLen = Math.max(oldVChilcren.length, newVChildren.length);
 
-  for (let i = 0; i < maxLen; i++) {
-    let nextVdom = oldVChilcren.find(
-      (item, index) => index > i && item && findDom(item)
-    );
-    compareTwoVdom(parentDOM, oldVChilcren[i], newVChildren[i]);
-  }
+  // 1.构建一个map
+  const keyedOldMap= {}
+  let lastPlacedIndex = 0
+  oldVChilcren.forEach((oldVChild,index) => {
+    let oldkey = oldVChild.key ? oldVChild.key : index
+    keyedOldMap[oldkey] = oldVChild
+  });
+
+  //创建爱你一个dom补丁包 收集dom操作
+  let patch = []
+  newVChildren.forEach((newVChild, index) => {
+    newVChild.mountIndex = index
+    const newKey = newVChild.key? newVChild.key:index
+    let oldVChild = keyedOldMap[newKey]
+    if (oldVChild) {
+      updateElement(oldVChild, newVChild)
+      if (oldVChild.mountIndex < lastPlacedIndex) {
+        patch.push({
+          type:MOVE,
+          oldVChild,
+          newVChild,
+          mountIndex:index
+        })
+      }
+      //如果一个老节点复用了就从map中删除
+      delete keyedOldMap[newKey]
+      lastPlacedIndex = Math.max(lastPlacedIndex, oldVChild.mountIndex)
+    }else{
+      patch.push({
+        type:PLACEMENT,
+        newVChild,
+        mountIndex: index
+      })
+    }
+  })
+  //过滤出补丁包里需要移动的老节点
+  let moveVChildren = patch.filter(action => action.type === MOVE).map(action => action.oldVChild)
+  //先把那些要移动的和要删除节点先全部删除
+  Object.values(keyedOldMap).concat(moveVChildren).forEach(oldVChild => {
+    let currentDOM = findDom(oldVChild)
+    currentDOM.remove()
+  })
+  patch.forEach(action => {
+    let {type, oldVChild, newVChild, mountIndex} = action
+    //老的真实DOM节点集合
+    let childNodes = parentDOM.childNodes
+    if (type === PLACEMENT) {
+      let newDOM = createDOM(newVChild)
+      let childNode = childNodes[mountIndex]
+      parentDOM.insertBefore(newDOM ,childNode)
+
+    }else if (type === MOVE) {
+      let oldDOM = findDom(oldVChild)
+      let childNode = childNodes[mountIndex]
+      parentDOM.insertBefore(oldDOM ,childNode)
+    }
+  })
+
+  // const maxLen = Math.max(oldVChilcren.length, newVChildren.length);
+  // for (let i = 0; i < maxLen; i++) {
+  //   let nextVdom = oldVChilcren.find(
+  //     (item, index) => index > i && item && findDom(item)
+  //   );
+  //   compareTwoVdom(parentDOM, oldVChilcren[i], newVChildren[i], nextVdom);
+  // }
 }
 
 /**

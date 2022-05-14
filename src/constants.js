@@ -1,5 +1,11 @@
-export const REACT_ELEMENT = Symbol.for('react_element')
-export const REACT_TEXT = Symbol.for('react_text')
-export const ReactComponent = Symbol.for('ReactComponent')
-export const REACT_FORWARD_REF = Symbol.for('react.forward_ref')
+export const REACT_ELEMENT = Symbol('react_element')
+export const REACT_TEXT = Symbol('react_text')
+export const ReactComponent = Symbol('ReactComponent')
+export const REACT_FORWARD_REF = Symbol('react.forward_ref')
+//插入
+export const PLACEMENT = 'PLACEMENT'
+//移动
+export const MOVE = 'MOVE'
 
+
+export const REACT_FRAGMENT = Symbol('react.fragment')

@@ -130,6 +130,18 @@ export class Component {
     //获取vdom对应的真实DOM oldRenderVdom.dom
     let oldDom = findDom(oldRenderVdom);
 
+    if (this.constructor.getDerivedStateFromProps) {
+      let newState = this.constructor.getDerivedStateFromProps(this.props, this.state)
+      if (newState) {
+        this.state = {
+          ...this.state,
+          ...newState
+        }
+      }
+    }
+
+    let  snapShot = this.getSnapshotBeforeUpdate()
+
     //重新执行render 得到新的虚拟Dom
     let newRenderVdom = this.render();
 
@@ -138,7 +150,7 @@ export class Component {
     this.oldRenderVdom = newRenderVdom;
 
     if (this.componentDidUpdate) {
-      this.componentDidUpdate(this.props, this.state);
+      this.componentDidUpdate(this.props, this.state, snapShot);
     }
   }
 }
