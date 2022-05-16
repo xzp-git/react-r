@@ -1,4 +1,4 @@
-import { REACT_TEXT, PLACEMENT, MOVE, REACT_FRAGMENT,ReactComponent, REACT_FORWARD_REF } from "./constants";
+import { REACT_TEXT, PLACEMENT, MOVE, REACT_FRAGMENT,ReactComponent, REACT_FORWARD_REF, REACT_PROVIDER, REACT_CONTEXT } from "./constants";
 import { addEvent } from "./event";
 
 function render(vdom, container) {
@@ -24,8 +24,11 @@ function mount(vdom, container) {
 function createDOM(vdom) {
   let { type, props, ref } = vdom;
   let dom; //真实DOM
-
-  if (type && type.$$typeof === REACT_FORWARD_REF) {
+  if (type && type.$$typeof === REACT_PROVIDER) {
+    return mountProviderComponent(vdom)
+  }else if (type && type.$$typeof === REACT_CONTEXT) {
+    return mountContextComponent(vdom)
+  }else if (type && type.$$typeof === REACT_FORWARD_REF) {
     return mountForwardComponent(vdom);
   } else if(type === REACT_FRAGMENT){
     dom = document.createDocumentFragment()
@@ -54,6 +57,24 @@ function createDOM(vdom) {
   if (ref) ref.current = dom;
   return dom;
 }
+
+function mountProviderComponent(vdom) {
+  let {type, props} = vdom
+  let context = type._context
+  context._currentValue = props.value
+  let renderVdom = props.children
+  vdom.oldRenderVdom = renderVdom
+  return createDOM(renderVdom)
+}
+
+function mountContextComponent(vdom) {
+  let {type, props} = vdom
+  let context = type._context
+  let renderVdom = props.children(context._currentValue)
+  vdom.oldRenderVdom = renderVdom
+  return createDOM(renderVdom)
+}
+
 function mountForwardComponent(vdom) {
   let { type, props, ref } = vdom;
   let renderVdom = type.render(props, ref);
@@ -74,14 +95,17 @@ function mountClassComponent(vdom) {
   let { type: ClassComponent, props, ref } = vdom;
 
   let classInstance = new ClassComponent(props);
-
+  if (ClassComponent.contextType) {
+    classInstance.context = ClassComponent.contextType._currentValue
+  }
+  vdom.classInstance = classInstance;
   //组件将要挂载
   if (classInstance.UNSAFE_componentWillMount) {
     classInstance.UNSAFE_componentWillMount();
   }
   if (ref) ref.current = classInstance;
   let renderVdom = classInstance.render();
-  vdom.classInstance = classInstance;
+  
   //把上一次render渲染的vdom保留
   vdom.oldRenderVdom = classInstance.oldRenderVdom = renderVdom;
 
@@ -138,7 +162,7 @@ function updateProps(dom, oldProps = {}, newProps = {}) {
  * @param {*} oldVdom
  * @param {*} newVdom
  */
-export function compareTwoVdom(parentDom, oldVdom, newVdom, nextVdom) {
+export function compareTwoVdom(parentDom, oldVdom, newVdom, nextDOM) {
   if (!oldVdom && !newVdom) {
     return;
     //如果老节点存在 新节点不存在，需要直接删除老节点就可以了
@@ -147,15 +171,22 @@ export function compareTwoVdom(parentDom, oldVdom, newVdom, nextVdom) {
   } else if (!oldVdom && newVdom) {
     let newDOM = createDOM(newVdom);
 
-    parentDom.insertBefore(newDOM, findDom(nextVdom));
+    if (nextDOM) {
+      parentDom.insertBefore(newDOM, nextDOM);
+    } else {
+      parentDom.appendChild(newDOM);//BUG
+    }
     if (newDOM.componentDidMount) {
       newDOM.componentDidMount();
     }
   } else if (oldVdom && newVdom && oldVdom.type !== newVdom.type) {
     unMountVdom(oldVdom);
     let newDOM = createDOM(newVdom);
-
-    parentDom.insertBefore(newDOM, findDom(nextVdom));
+    if (newDOM) {
+      parentDom.insertBefore(newDOM, nextDOM);
+    } else {
+      parentDom.appendChild(newDOM);//BUG
+    }
     if (newDOM.componentDidMount) {
       newDOM.componentDidMount();
     }
@@ -165,7 +196,11 @@ export function compareTwoVdom(parentDom, oldVdom, newVdom, nextVdom) {
   }
 }
 function updateElement(oldVdom, newVdom) {
-  if (oldVdom.type === REACT_TEXT) {
+  if (oldVdom.type.$$typeof === REACT_CONTEXT) {
+    updateContextComponent(oldVdom, newVdom)
+  } else if(oldVdom.type.$$typeof === REACT_PROVIDER) {
+    updateProviderComponent(oldVdom, newVdom)
+  }else if (oldVdom.type === REACT_TEXT) {
     let currentDOM = (newVdom.dom = findDom(oldVdom));
     if (oldVdom.props !== newVdom.props) {
       currentDOM.textContent = newVdom.props;
@@ -183,6 +218,25 @@ function updateElement(oldVdom, newVdom) {
       updateFunctionComponent(oldVdom, newVdom);
     }
   }
+}
+function updateContextComponent(oldVdom, newVdom) {
+  let currentDOM = findDom(oldVdom)
+  let parentDOM = currentDOM.parentNode
+  let {type, props} = newVdom
+  let context = type._context
+  let newRenderVdom = props.children(context._currentValue)
+  compareTwoVdom(parentDOM, oldVdom.oldRenderVdom, newRenderVdom)
+  newVdom.oldRenderVdom = newRenderVdom
+}
+function updateProviderComponent(oldVdom, newVdom) {
+  let currentDOM = findDom(oldVdom)
+  let parentDOM = currentDOM.parentNode
+  let {type, props} = newVdom
+  let context = type._context
+  context._currentValue = props.value
+  let renderVdom = props.children
+  compareTwoVdom(parentDOM, oldVdom.oldRenderVdom, renderVdom)
+  newVdom.oldRenderVdom = renderVdom
 }
 function updateFragment(oldVdom, newVdom) {
   let currentDOM = newVdom.dom =findDom(oldVdom)
@@ -260,12 +314,20 @@ function updateChildren(parentDOM, oldVChilcren, newVChildren) {
     if (type === PLACEMENT) {
       let newDOM = createDOM(newVChild)
       let childNode = childNodes[mountIndex]
-      parentDOM.insertBefore(newDOM ,childNode)
+      if (childNode) {
+        parentDOM.insertBefore(newDOM, childNode);
+      } else {
+        parentDOM.appendChild(newDOM);
+      }
 
     }else if (type === MOVE) {
       let oldDOM = findDom(oldVChild)
       let childNode = childNodes[mountIndex]
-      parentDOM.insertBefore(oldDOM ,childNode)
+      if (childNode) {
+        parentDOM.insertBefore(oldDOM, childNode);
+      } else {
+        parentDOM.appendChild(oldDOM);
+      }
     }
   })
 
@@ -283,7 +345,7 @@ function updateChildren(parentDOM, oldVChilcren, newVChildren) {
  * @param {*} vdom
  */
 function unMountVdom(vdom) {
-  let { type, props, ref, classInstance } = vdom;
+  let { props, ref, classInstance } = vdom;
   let currentDOM = findDom(vdom);
   if (classInstance && classInstance.componentWillUnmount) {
     classInstance.componentWillUnmount();

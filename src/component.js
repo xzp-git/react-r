@@ -130,6 +130,10 @@ export class Component {
     //获取vdom对应的真实DOM oldRenderVdom.dom
     let oldDom = findDom(oldRenderVdom);
 
+    if (this.constructor.contextType) {
+      this.context = this.constructor.contextType._currentValue
+    }
+
     if (this.constructor.getDerivedStateFromProps) {
       let newState = this.constructor.getDerivedStateFromProps(this.props, this.state)
       if (newState) {
@@ -140,7 +144,7 @@ export class Component {
       }
     }
 
-    let  snapShot = this.getSnapshotBeforeUpdate()
+    let  snapShot = this.getSnapshotBeforeUpdate && this.getSnapshotBeforeUpdate()
 
     //重新执行render 得到新的虚拟Dom
     let newRenderVdom = this.render();
