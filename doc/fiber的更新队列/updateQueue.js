@@ -1,7 +1,7 @@
 function initialUpdateQueue(fiber) {
   const queue = {
     shared: {
-      pending: null,
+      pending: null, //永远指向最后一个更新
     },
   };
   fiber.updateQueue = queue;
@@ -62,4 +62,4 @@ let update2 = createUpdate();
 update2.payload = { age: 26 };
 enqueueUpdate(fiber, update2);
 processUpdateQueue(fiber);
-console.log(fiber.memoizedState);
+console.log(fiber.memoizedState); //{ id: 1, name: 'foo', age: 26 }
