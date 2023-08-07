@@ -1,4 +1,5 @@
 import { HostRoot } from "./ReactWorkTags";
+import { NoFlags } from "./ReactFiberFlags";
 
 /**
  *
@@ -30,12 +31,14 @@ export function FiberNode(tag, pendingProps, key) {
 
   //   副作用标识，表示要针对此fiber节点进行何种操作
   this.flags = NoFlags;
-  //   子节点对应的副作用标识
+  //   子节点对应的副作用标识  副作用 就是指 对DOM节点的操作
   this.subtreeFlags = NoFlags;
+
+  // 替身， 轮替
   this.alternate = null;
 }
 
-export function createFiber() {
+export function createFiber(tag, pendingProps, key) {
   return new FiberNode(tag, pendingProps, key);
 }
 

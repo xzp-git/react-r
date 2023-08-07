@@ -90,7 +90,7 @@ export function createFiberRoot(containerInfo) {
 }
 ```
 
-# fiber
+# Fiber
 
 ## 性能瓶颈
 
@@ -176,10 +176,40 @@ export function createFiberRoot(containerInfo) {
 </html>
 ```
 
-## Fiber
+## 从 react 中学习到的位运算在权限中的应用
+
+```js
+// 在 React 进行DOM DIFF 的时候 会计算要执行的操作
+
+const Placement = 0b001; //1
+const Update = 0b010; //2
+let flags = 0b00;
+
+// 增加操作
+
+flags |= Placement;
+flags |= Update;
+
+console.log(flags.toString(2));
+console.log(flags);
+
+// 删除操作
+flags = flags & ~Placement;
+console.log(flags.toString(2));
+console.log(flags);
+
+// 判断是否包含
+
+console.log((flags & Placement) === Placement);
+console.log((flags & Update) === Update);
+```
+
+## 什么是 Fiber ？
+
+为什么需要 Fiber？
 
 - 我们可以通过某些调度策略合理分配 CPU 资源，从而提高用户的响应速度
-- 通过 Fiber 架构，让自己的调和过程变成可被中断。 适时地让出 CPU 执行权，除了可以让浏览器及时地响应用户的交互
+- 通过 Fiber 架构，让自己的调和过程变成可被中断。 适时地让出 CPU 执行权，可以让浏览器及时地响应用户的交互
 
 ### Fiber 是一个执行单元
 
@@ -187,10 +217,110 @@ export function createFiberRoot(containerInfo) {
 
 ### Fiber 是一种数据结构
 
-React 目前的做法是使用链表, 每个虚拟节点内部表示为一个 Fiber
+React 目前的做法是使用的类链表的数据结构, 每个虚拟节点内部表示为一个 Fiber
 从顶点开始遍历
 如果有第一个儿子，先遍历第一个儿子
 如果没有第一个儿子，标志着此节点遍历完成
 如果有弟弟遍历弟弟
 如果有没有下一个弟弟，返回父节点标识完成父节点遍历，如果有叔叔遍历叔叔
 没有父节点遍历结束
+
+### 创建根 fiber
+
+#### react-reconciler/src/ReactFiberRoot.js
+
+根容器的 `current` 指向当前的根 `fiber` ，根 `fiber` 的 `stateNode` 指向真实的 `DOM` 节点
+
+```js
+import { createHostRootFiber } from "./ReactFiber";
+
+//简单来说 FiberRootNode = containerInfo 他的本质就是一个真实的容器DOM节点 div#root
+//其实就是一个真实的DOM
+function FiberRootNode(containerInfo) {
+  this.containerInfo = containerInfo; //div#root
+}
+
+/**
+ * 创建fiber根节点
+ * @param {容器信息} containerInfo
+ */
+export function createFiberRoot(containerInfo) {
+  const root = new FiberRootNode(containerInfo);
+
+  //   HostRoot指的就是根节点 div#root
+  const uninitializedFiber = createHostRootFiber();
+  //   根容器的current指向当前的根fiber
+  root.current = uninitializedFiber;
+  // 根fiber的stateNode，也就是真是DOM节点指向
+  uninitializedFiber.stateNode = root;
+  return root;
+}
+```
+
+#### react-reconciler/src/ReactFiber.js
+
+```js
+import { HostRoot } from "./ReactWorkTags";
+import { NoFlags } from "./ReactFiberFlags";
+
+/**
+ *
+ * @param {fiber的类型} tag 函数组件 0   类组件 1   原生组件 5 根元素3
+ * @param {等待更新的props} pendingProps
+ * @param {虚拟dom的key} key
+ */
+export function FiberNode(tag, pendingProps, key) {
+  this.tag = tag;
+  this.key = key;
+  this.type = null; //fiber 类型， 来自于 虚拟DOM节点的type  span  div p
+
+  //   每个虚拟DOM   =>  Fiber节点   =>  真实DOM
+
+  this.stateNode = null; //此fiber对应的真实DOM节点  h1 => 真实的h1DOM
+
+  this.return = null;
+  this.child = null;
+  this.sibling = null;
+  // fiber 哪来的？ 通过虚拟DOM节点创建，虚拟DOM会提供pendingProps用来创建fiber节点的属性
+  this.pendingProps = pendingProps; //等待生效的属性
+  this.memoizedProps = null; //已经生效的属性
+
+  //   每个fiber还会有自己的状态，每一种fiber 状态存的类型是不一样的
+  // 类组件对应的fiber 存的就是类的实例的状态，HostRoot 存的就是要渲染的元素
+  this.memoizedState = null;
+
+  this.updateQueue = null;
+
+  //   副作用标识，表示要针对此fiber节点进行何种操作
+  this.flags = NoFlags;
+  //   子节点对应的副作用标识 副作用 就是指 对DOM节点的操作
+  this.subtreeFlags = NoFlags;
+
+  // 替身， 轮替
+  this.alternate = null;
+}
+
+export function createFiber(tag, pendingProps, key) {
+  return new FiberNode(tag, pendingProps, key);
+}
+
+export function createHostRootFiber() {
+  return createFiber(HostRoot, null, null);
+}
+```
+
+#### react-reconciler/src/ReactFiberFlags.js
+
+```js
+export const NoFlags = 0b00000000000000000000000000;
+export const Placement = 0b00000000000000000000000010;
+export const Update = 0b00000000000000000000000100;
+```
+
+#### fiber 中的更新队列（循环链表）
+
+![](./iamges/queuepending_1644750048819.png)
+
+```js
+
+```
