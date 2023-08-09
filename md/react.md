@@ -341,9 +341,10 @@ function enqueueUpdate(fiber, update) {
   if (!shared.pending) {
     update.next = update;
   } else {
-    update.next = shared.pending.next;
-    shared.pending.next = update;
+    update.next = shared.pending.next; // pending.next 指向的是第一个更新，这句的意思是 先把 第一个更新保留下来
+    shared.pending.next = update; // 再让队尾的元素 指向 新入队的元素
   }
+  //pending要指向最后一个更新，最后一个更新 next 指向第一个更新  --- 单向循环链表
   shared.pending = update;
 }
 
