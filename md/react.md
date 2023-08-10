@@ -225,6 +225,8 @@ React 目前的做法是使用的类链表的数据结构, 每个虚拟节点内
 如果有没有下一个弟弟，返回父节点标识完成父节点遍历，如果有叔叔遍历叔叔
 没有父节点遍历结束
 
+![](./iamges/renderFiber1_1664076149659.jpg)
+
 ### 创建根 fiber
 
 #### react-reconciler/src/ReactFiberRoot.js

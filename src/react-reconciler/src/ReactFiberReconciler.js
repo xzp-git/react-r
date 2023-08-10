@@ -1,6 +1,6 @@
 import { createFiberRoot } from "./ReactFiberRoot";
 import { createUpdate, enqueueUpdate } from "./ReactFiberClassUpdateQueue";
-import { markUpdateLaneFromFiberToRoot } from "./ReactFiberConcurrentUpdates";
+import { scheduleUpdateOnFiber } from "./ReactFiberWorkLoop";
 
 /**
  * 创建容器
@@ -26,8 +26,6 @@ export function updateContainer(element, container) {
   // 要更新的虚拟DOM
   update.payload = { element };
   //把此更新对象添加到current这个根fiber的更新队列上
-  enqueueUpdate(current, update);
-
-  //返回根节点 从当前的fiber一直到根节点
-  return markUpdateLaneFromFiberToRoot(current);
+  const root = enqueueUpdate(current, update);
+  scheduleUpdateOnFiber(root);
 }

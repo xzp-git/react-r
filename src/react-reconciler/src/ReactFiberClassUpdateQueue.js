@@ -1,3 +1,5 @@
+import { markUpdateLaneFromFiberToRoot } from "./ReactFiberConcurrentUpdates";
+
 export function initialUpdateQueue(fiber) {
   const queue = {
     shared: {
@@ -24,4 +26,6 @@ export function enqueueUpdate(fiber, update) {
     sharedPending.next = update;
   }
   updateQueue.shared.pending = update;
+  //返回根节点 从当前的fiber一直到根节点
+  return markUpdateLaneFromFiberToRoot(fiber);
 }
