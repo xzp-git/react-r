@@ -1,4 +1,7 @@
 import { scheduleCallback } from "./scheduler";
+import { createWorkInProgress } from "./ReactFiber";
+import { beginWork } from "./ReactFiberBeginWork";
+
 let workInProgress = null;
 
 /**
@@ -27,4 +30,33 @@ function performConcurrentWorkOnRoot(root) {
 
 function renderRootSync(root) {
   //开始构建fiber树
+  prepareFreshStack(root);
+  workLoopSync();
+}
+
+function prepareFreshStack(root) {
+  workInProgress = createWorkInProgress(root.current, null);
+  console.log(workInProgress);
+}
+
+function workLoopSync() {
+  while (workInProgress !== null) {
+    performUnitOfWork(workInProgress);
+  }
+}
+
+function performUnitOfWork(unitOfWork) {
+  // 获取新的fiber对应的老fiber
+  const current = unitOfWork.alternate;
+  // 完成当前fiber的子fiber链表的构建
+  const next = beginWork(current, unitOfWork);
+  unitOfWork.memoizedProps = unitOfWork.pendingProps;
+  if (next === null) {
+    //如果没有子节点表示当前的fiber已经完成了
+    workInProgress = null;
+    // completeUnitOfWork(unitOfWork)
+  } else {
+    // 如果有子节点，就让子节点成为下个工作单元
+    workInProgress = next;
+  }
 }
