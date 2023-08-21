@@ -1,6 +1,7 @@
 import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
 import { processUpdateQueue } from "./ReactFiberClassUpdateQueue";
 import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
+import { shouldSetTextContent } from "react-dom-bindings/src/client/ReactDOMHostConfig";
 /**
  * 目标是根据新虚拟DOM构建新的Fiber子链表 child sibling
  * @param {*} current 老的fiber
@@ -25,13 +26,31 @@ function updateHostRoot(current, workInProgress) {
   processUpdateQueue(workInProgress); //workInProgress.memoizedState = {element}
   const nextState = workInProgress.memoizedState;
   const nextChildren = nextState.element;
-  debugger;
   //   协调子节点DOM-Diff算法
   reconcileChildren(current, workInProgress, nextChildren);
   return workInProgress.child;
 }
 
-function updateHostComponent(params) {}
+/**
+ * 构建原生组件的子fiber链表
+ * @param {*} current
+ * @param {*} workInProgress
+ * @returns
+ */
+
+function updateHostComponent(current, workInProgress) {
+  const { type } = workInProgress;
+  const nextProps = workInProgress.pendingProps;
+  let nextChildren = nextProps.children;
+  // 判断当前虚拟DOm它的儿子是不是一个文本独生子
+  const isDirectTextChild = shouldSetTextContent(type, nextProps);
+
+  if (isDirectTextChild) {
+    nextChildren = null;
+  }
+  reconcileChildren(current, workInProgress, nextChildren);
+  return workInProgress.child;
+}
 
 /**
  * 根据新的虚拟DOm生成新的fiber链表

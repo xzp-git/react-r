@@ -1,4 +1,4 @@
-import { HostRoot } from "./ReactWorkTags";
+import { HostRoot, HostText } from "./ReactWorkTags";
 import { NoFlags } from "./ReactFiberFlags";
 
 /**
@@ -36,6 +36,8 @@ export function FiberNode(tag, pendingProps, key) {
 
   // 替身， 轮替
   this.alternate = null;
+
+  this.index = 0;
 }
 
 export function createFiber(tag, pendingProps, key) {
@@ -68,4 +70,8 @@ export function createWorkInProgress(current, pendingProps) {
   workInProgress.sibling = current.sibling;
   workInProgress.index = current.index;
   return workInProgress;
+}
+
+export function createFiberFromText(content) {
+  return createFiber(HostText, content, null);
 }
