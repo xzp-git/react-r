@@ -4,6 +4,8 @@ import {
 } from "react-reconciler/src/ReactFiberReconciler";
 // reconciler 协调器
 
+import { listenToAllSupportedEvents } from "react-dom-bindings/src/events/DOMPluginEventSystem";
+
 /**
  *
  * @param {FiberRootNode的实例 } internalRoot
@@ -26,6 +28,6 @@ export function createRoot(container) {
   //创建容器
   // @return {FiberRootNode} 返回FiberRootNode的实例
   const root = createContainer(container);
-
+  listenToAllSupportedEvents(container);
   return new ReactDOMRoot(root);
 }

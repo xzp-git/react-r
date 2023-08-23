@@ -1,5 +1,10 @@
 import { NoFlags } from "./ReactFiberFlags";
-import { HostComponent, HostRoot, HostText } from "./ReactWorkTags";
+import {
+  HostComponent,
+  HostRoot,
+  HostText,
+  FunctionComponent,
+} from "./ReactWorkTags";
 import {
   createInstance,
   createTextInstance,
@@ -17,6 +22,7 @@ export function completeWork(current, workInProgress) {
   const newProps = workInProgress.pendingProps;
 
   switch (workInProgress.tag) {
+    case FunctionComponent:
     case HostRoot:
       bubblePropertier(workInProgress);
       break;

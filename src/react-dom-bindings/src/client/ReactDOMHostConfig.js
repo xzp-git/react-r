@@ -12,6 +12,7 @@ export function createTextInstance(content) {
 
 export function createInstance(type) {
   const domElement = document.createElement(type);
+  updateFiberProps(domElement, props);
   return domElement;
 }
 
@@ -29,3 +30,5 @@ export function appendChild(parent, child) {
 export function insertBefore(parent, child, beforeChild) {
   parent.insertBefore(child, beforeChild);
 }
+
+export function updateFiberProps(domElement, props) {}
