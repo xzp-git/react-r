@@ -1,5 +1,5 @@
 import { setInitialProperties } from "./ReactDOMComponent";
-
+import { precacheFiberNode, updateFiberProps } from "./ReactDOMComponentTree";
 export function shouldSetTextContent(type, props) {
   return (
     typeof props.children === "string" || typeof props.children === "number"
@@ -10,8 +10,10 @@ export function createTextInstance(content) {
   return document.createTextNode(content);
 }
 
-export function createInstance(type) {
+export function createInstance(type, props, workInProgress) {
   const domElement = document.createElement(type);
+  precacheFiberNode(workInProgress, domElement);
+  //把属性直接保存在domElement的属性上
   updateFiberProps(domElement, props);
   return domElement;
 }
@@ -30,5 +32,3 @@ export function appendChild(parent, child) {
 export function insertBefore(parent, child, beforeChild) {
   parent.insertBefore(child, beforeChild);
 }
-
-export function updateFiberProps(domElement, props) {}
