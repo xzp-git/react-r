@@ -36,8 +36,15 @@ function reducer(state, action) {
 // }
 function FunctionComponent() {
   const [number, setNumber] = React.useReducer(reducer, 0);
+  const [number1, setNumber1] = React.useReducer(reducer, 0);
   return (
-    <button onClick={() => setNumber({ type: "add", payload: 1 })}>
+    <button
+      onClick={() => {
+        setNumber({ type: "add", payload: 1 });
+        setNumber({ type: "add", payload: 1 });
+        setNumber({ type: "add", payload: 1 });
+      }}
+    >
       {number}
     </button>
   );
