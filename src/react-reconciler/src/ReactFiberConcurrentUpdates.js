@@ -35,7 +35,7 @@ export function enqueuConcurrentHookUpdate(fiber, queue, update) {
   return getRootForUpdatedFiber(fiber);
 }
 
-function getRootForUpdatedFiber(fiber) {
+function getRootForUpdatedFiber(sourceFiber) {
   let node = sourceFiber;
   let parent = node.return;
 
@@ -56,7 +56,7 @@ function enqueueUpdate(fiber, queue, update) {
   concurrentQueue[concurrentQueueIndex++] = update;
 }
 
-function finishQueueingConcurrentUpdates() {
+export function finishQueueingConcurrentUpdates() {
   const endIndex = concurrentQueueIndex;
   concurrentQueueIndex = 0;
   let i = 0;

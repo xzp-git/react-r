@@ -7,6 +7,7 @@ import { commitMutationEffectsOnFiber } from "./ReactFiberCommitWork";
 import { finishQueueingConcurrentUpdates } from "./ReactFiberConcurrentUpdates";
 
 let workInProgress = null;
+let workInProgressRoot = null;
 
 /**
  * 计划更新root
@@ -14,6 +15,10 @@ let workInProgress = null;
  * @param {*} root
  */
 export function scheduleUpdateOnFiber(root) {
+  if (workInProgressRoot) {
+    return;
+  }
+  workInProgressRoot = root;
   //确保调度执行root上的更新
   ensureRootIsScheduled(root);
 }
@@ -36,6 +41,7 @@ function performConcurrentWorkOnRoot(root) {
   const finishedWork = root.current.alternate;
   root.finishedWork = finishedWork;
   commitRoot(root);
+  workInProgressRoot = null;
 }
 
 function commitRoot(root) {

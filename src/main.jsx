@@ -41,8 +41,8 @@ function FunctionComponent() {
     <button
       onClick={() => {
         setNumber({ type: "add", payload: 1 });
-        setNumber({ type: "add", payload: 1 });
-        setNumber({ type: "add", payload: 1 });
+        setNumber({ type: "add", payload: 2 });
+        setNumber({ type: "add", payload: 3 });
       }}
     >
       {number}
