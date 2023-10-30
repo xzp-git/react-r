@@ -30,6 +30,22 @@ export function mountIndeterminateComponent(
   return workInProgress.child;
 }
 
+export function updateFunctionComponent(
+  current,
+  workInProgress,
+  Component,
+  newProps
+) {
+  const nextChildren = renderWithHooks(
+    current,
+    workInProgress,
+    Component,
+    newProps
+  );
+  reconcileChildren(current, workInProgress, nextChildren);
+  return workInProgress.child;
+}
+
 /**
  * 目标是根据新虚拟DOM构建新的Fiber子链表 child sibling
  * @param {*} current 老的fiber
@@ -44,6 +60,16 @@ export function beginWork(current, workInProgress) {
         workInProgress,
         workInProgress.type
       );
+    case FunctionComponent: {
+      const Component = workInProgress.type;
+      const newProps = workInProgress.pendingProps;
+      return updateFunctionComponent(
+        current,
+        workInProgress,
+        Component,
+        newProps
+      );
+    }
     case HostRoot:
       return updateHostRoot(current, workInProgress);
     case HostComponent:

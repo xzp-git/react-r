@@ -92,7 +92,7 @@ function updateWorkInProgressHook() {
   } else {
     workInProgressHook = workInProgressHook.next = newHook;
   }
-  return newHook;
+  return workInProgressHook;
 }
 
 /**
