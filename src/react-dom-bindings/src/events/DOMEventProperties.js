@@ -13,7 +13,7 @@ export function registerSimpleEvents() {
 }
 
 function registerSimpleEvent(domEventName, reactName) {
-  // onClick在哪里可以取到
+  // onClick在哪里可以取到 --> pendingProps
 
   topLevelEventsToReactNames.set(domEventName, reactName);
   registerTwoPhaseEvent(reactName, [domEventName]);

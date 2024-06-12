@@ -17,7 +17,7 @@ export default function getListener(inst, registrationName) {
   if (props === null) {
     return null;
   }
-  const listener = props[registrationName]; // props.onClck
+  const listener = props[registrationName]; // props.onClick
 
   return listener;
 }

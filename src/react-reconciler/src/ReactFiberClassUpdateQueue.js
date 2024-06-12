@@ -6,7 +6,7 @@ export const UpdateState = 0;
 export function initialUpdateQueue(fiber) {
   const queue = {
     shared: {
-      pending: null,
+      pending: null, //永远指向最后一个更新
     },
   };
   fiber.updateQueue = queue;
@@ -19,16 +19,15 @@ export function createUpdate() {
 }
 
 export function enqueueUpdate(fiber, update) {
-  const updateQueue = fiber.updateQueue;
-  const sharedPending = updateQueue.shared.pending;
-
+  const updateQueue = fiber.updateQueue; // updateQueue 类似循环链表, 链表的尾部指针通常是指向空值, 循环链表的尾部指向头部
+  const sharedPending = updateQueue.shared.pending; //永远指向最后一个更新
   if (sharedPending === null) {
     update.next = update;
   } else {
-    update.next = sharedPending.next;
-    sharedPending.next = update;
+    update.next = sharedPending.next; // 先让新的尾部指向链表头
+    sharedPending.next = update; // 再让链表的旧尾部，不要指向链表头了，指向新的尾部 构成一个环状的链表
   }
-  updateQueue.shared.pending = update;
+  updateQueue.shared.pending = update; // 更新pending指向新的尾部
   //返回根节点 从当前的fiber一直到根节点
   return markUpdateLaneFromFiberToRoot(fiber);
 }

@@ -34,6 +34,54 @@ function reducer(state, action) {
 //     </h1>
 //   );
 // }
+// function FunctionComponent() {
+//   const [number, setNumber] = React.useReducer(reducer, 0);
+//   return (
+//     <h1
+//       id="h2222"
+//       onClick={() => {
+//         console.log("父React冒泡");
+//       }}
+//       onClickCapture={() => {
+//         console.log("父React捕获");
+//       }}
+//     >
+//       <span
+//         onClick={() => {
+//           console.log("子React冒泡");
+//         }}
+//         onClickCapture={() => {
+//           console.log("子React捕获");
+//         }}
+//         style={{ color: "red" }}
+//       >
+//         world
+//       </span>
+//       <span
+//         onClick={() => {
+//           console.log("子React冒泡");
+//         }}
+//         onClickCapture={() => {
+//           console.log("子React捕获");
+//         }}
+//         style={{ color: "red" }}
+//       >
+//         world2
+//       </span>
+//       <span
+//         onClick={() => {
+//           console.log("子React冒泡");
+//         }}
+//         onClickCapture={() => {
+//           console.log("子React捕获");
+//         }}
+//         style={{ color: "red" }}
+//       >
+//         world3
+//       </span>
+//     </h1>
+//   );
+// }
 function FunctionComponent() {
   const [number, setNumber] = React.useReducer(reducer, 0);
   let attrs = { id: "btn1" };
@@ -55,6 +103,30 @@ function FunctionComponent() {
   );
 }
 let element = <FunctionComponent />;
+// let h = (
+//   <h1
+//     id="h2222"
+//     onClick={() => {
+//       console.log("父React冒泡");
+//     }}
+//     onClickCapture={() => {
+//       console.log("父React捕获");
+//     }}
+//   >
+//     <span
+//       onClick={() => {
+//         console.log("子React冒泡");
+//       }}
+//       onClickCapture={() => {
+//         console.log("子React捕获");
+//       }}
+//       style={{ color: "red" }}
+//     >
+//       world
+//     </span>
+//   </h1>
+// );
+// console.log(element, h);
 const root = createRoot(document.getElementById("root"));
 
 root.render(element);
