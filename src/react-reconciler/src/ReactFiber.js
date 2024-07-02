@@ -47,7 +47,20 @@ export function createFiber(tag, pendingProps, key) {
 export function createHostRootFiber() {
   return createFiber(HostRoot, null, null);
 }
-
+/**
+ *
+ * 1.current Workinprogress不是一个对象
+   2.workInProgress
+    2.1有两种情况,一种是没有,创建一个新,互相通过alternate指向
+    2.2存在alternate,直接复用老的alternate就可以了
+  复用有两层含义
+  1.复用老的fiber对象
+  2.复用老的真实DOM
+ *
+ * @param {*} current
+ * @param {*} pendingProps
+ * @returns
+ */
 export function createWorkInProgress(current, pendingProps) {
   let workInProgress = current.alternate;
 

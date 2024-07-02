@@ -9,28 +9,9 @@ function reducer(state, action) {
 }
 
 // function FunctionComponent() {
-//   const [number, setNumber] = React.useReducer(reducer, 0);
 //   return (
-//     <h1
-//       id="h2222"
-//       onClick={() => {
-//         console.log("父React冒泡");
-//       }}
-//       onClickCapture={() => {
-//         console.log("父React捕获");
-//       }}
-//     >
-//       <span
-//         onClick={() => {
-//           console.log("子React冒泡");
-//         }}
-//         onClickCapture={() => {
-//           console.log("子React捕获");
-//         }}
-//         style={{ color: "red" }}
-//       >
-//         world
-//       </span>
+//     <h1 id="h2222">
+//       <span style={{ color: "red" }}>world</span>
 //     </h1>
 //   );
 // }
@@ -82,21 +63,67 @@ function reducer(state, action) {
 //     </h1>
 //   );
 // }
+// function FunctionComponent() {
+//   const [number, setNumber] = React.useReducer(reducer, 0);
+//   let attrs = { id: "btn1" };
+//   if (number === 6) {
+//     delete attrs.id;
+//     attrs.style = { color: "red" };
+//   }
+//   return (
+//     <button
+//       {...attrs}
+//       onClick={() => {
+//         setNumber({ type: "add", payload: 1 });
+//         setNumber({ type: "add", payload: 2 });
+//         setNumber({ type: "add", payload: 3 });
+//       }}
+//     >
+//       {number}
+//     </button>
+//   );
+// }
+
+// function FunctionComponent() {
+//   const [number, setNumber] = React.useState(0);
+//   let attrs = { id: "btn1" };
+//   if (number === 6) {
+//     delete attrs.id;
+//     attrs.style = { color: "red" };
+//   }
+//   return (
+//     <button
+//       {...attrs}
+//       onClick={() => {
+//         setNumber((number) => number + 1);
+//       }}
+//     >
+//       {number}
+//     </button>
+//   );
+// }
 function FunctionComponent() {
-  const [number, setNumber] = React.useReducer(reducer, 0);
-  let attrs = { id: "btn1" };
-  if (number === 6) {
-    delete attrs.id;
-    attrs.style = { color: "red" };
-  }
-  return (
+  const [number, setNumber] = React.useState(0);
+
+  return number === 0 ? (
     <button
       {...attrs}
       onClick={() => {
-        setNumber({ type: "add", payload: 1 });
-        setNumber({ type: "add", payload: 2 });
-        setNumber({ type: "add", payload: 3 });
+        setNumber((number) => number + 1);
       }}
+      key="title"
+      id="title1"
+    >
+      {number}
+    </button>
+  ) : (
+    <button
+      {...attrs}
+      onClick={() => {
+        setNumber((number) => number + 1);
+      }}
+      key="title"
+      id="title2"
     >
       {number}
     </button>
